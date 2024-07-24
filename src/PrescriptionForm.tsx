@@ -35,44 +35,54 @@ import { cn } from "./lib/utils";
 import { z } from "zod";
 
 const PrescriptionFormSchema = z.object({
-  patientName: z.string().min(1, {
-    message: "Campo obrigatório",
+  patientName: z.string({ required_error: "Campo obrigatório" }).max(50, {
+    message: "Máximo de 50 caracteres",
   }),
-  address: z.string().min(1, {
-    message: "Campo obrigatório",
+  address: z.string({ required_error: "Campo obrigatório" }).max(50, {
+    message: "Máximo de 50 caracteres",
   }),
-  age: z.string().min(1, {
-    message: "Campo obrigatório",
-  }),
+  age: z.preprocess(
+    (a) => {
+      if (typeof a === "number") return a;
+      if (typeof a === "string" && a.length > 0) return parseInt(a, 10);
+      if (typeof a === "string" && a.length === 0) return 0;
+      return a;
+    },
+    z
+      .number({ required_error: "Campo obrigatório" })
+      .min(1, {
+        message: "Idade inválida",
+      })
+      .max(120, {
+        message: "Idade inválida",
+      })
+  ),
   date: z.date(),
-  diagnosis: z.string().min(1, {
-    message: "Campo obrigatório",
+  diagnosis: z.string({ required_error: "Campo obrigatório" }).max(100, {
+    message: "Máximo de 100 caracteres",
   }),
   doctorGender: z.string().min(1, {
     message: "Campo obrigatório",
   }),
-  doctorName: z.string().min(1, {
-    message: "Campo obrigatório",
+  doctorName: z.string({ required_error: "Campo obrigatório" }).max(11, {
+    message: "Máximo de 11 caracteres",
   }),
-  qualification: z.string().min(1, {
-    message: "Campo obrigatório",
+  qualification: z.string({ required_error: "Campo obrigatório" }).max(50, {
+    message: "Máximo de 50 caracteres",
   }),
-  certification: z.string().min(1, {
-    message: "Campo obrigatório",
+  certification: z.string({ required_error: "Campo obrigatório" }).max(50, {
+    message: "Máximo de 50 caracteres",
   }),
-  obs: z
-    .string()
-    .min(1, {
-      message: "Campo obrigatório",
-    })
-    .max(1500),
+  obs: z.string({ required_error: "Campo obrigatório" }).max(1500),
   logo: z.custom<File>(),
 });
 
 type PrescriptionFormInputs = z.infer<typeof PrescriptionFormSchema>;
 
 const PrescriptionForm: React.FC = () => {
-  const storageDoctorInfo = localStorage.getItem("doctorInfo") ? JSON.parse(localStorage.getItem("doctorInfo") as string) : null;
+  const storageDoctorInfo = localStorage.getItem("doctorInfo")
+    ? JSON.parse(localStorage.getItem("doctorInfo") as string)
+    : null;
 
   const form = useForm<PrescriptionFormInputs>({
     resolver: zodResolver(PrescriptionFormSchema),
@@ -81,8 +91,8 @@ const PrescriptionForm: React.FC = () => {
       doctorName: storageDoctorInfo?.doctorName || "",
       qualification: storageDoctorInfo?.qualification || "",
       certification: storageDoctorInfo?.certification || "",
-      date:new Date(),
-    }
+      date: new Date(),
+    },
   });
   const { handleSubmit, control } = form;
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -155,7 +165,6 @@ const PrescriptionForm: React.FC = () => {
             <FormField
               name="doctorGender"
               control={control}
-              rules={{ required: true }}
               render={({ field }) => {
                 return (
                   <FormItem>
@@ -182,7 +191,6 @@ const PrescriptionForm: React.FC = () => {
             <FormField
               name="doctorName"
               control={control}
-              rules={{ required: true }}
               render={({ field }) => {
                 return (
                   <FormItem className="w-full">
@@ -199,7 +207,6 @@ const PrescriptionForm: React.FC = () => {
           <FormField
             name="qualification"
             control={control}
-            rules={{ required: true }}
             render={({ field }) => {
               return (
                 <FormItem className="w-full">
@@ -217,7 +224,6 @@ const PrescriptionForm: React.FC = () => {
           <FormField
             name="certification"
             control={control}
-            rules={{ required: true }}
             render={({ field }) => {
               return (
                 <FormItem className="w-full">
@@ -236,7 +242,6 @@ const PrescriptionForm: React.FC = () => {
           <FormField
             name="patientName"
             control={control}
-            rules={{ required: true }}
             render={({ field }) => {
               return (
                 <FormItem className="w-full">
@@ -250,7 +255,6 @@ const PrescriptionForm: React.FC = () => {
           <FormField
             name="age"
             control={control}
-            rules={{ required: true }}
             render={({ field }) => {
               return (
                 <FormItem className="w-full">
@@ -266,7 +270,6 @@ const PrescriptionForm: React.FC = () => {
           <FormField
             name="address"
             control={control}
-            rules={{ required: true }}
             render={({ field }) => {
               return (
                 <FormItem className="w-full">
@@ -283,7 +286,6 @@ const PrescriptionForm: React.FC = () => {
           <FormField
             control={control}
             name="date"
-            rules={{ required: true }}
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Data de atendimento</FormLabel>
@@ -329,7 +331,6 @@ const PrescriptionForm: React.FC = () => {
           <FormField
             name="diagnosis"
             control={control}
-            rules={{ required: true }}
             render={({ field }) => {
               return (
                 <FormItem className="w-full">
