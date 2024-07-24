@@ -29,28 +29,70 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import { Textarea } from "./components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "./lib/utils";
 
-type PrescriptionFormInputs = {
-  patientName: string;
-  address: string;
-  age: string;
-  date: Date;
-  diagnosis: string;
-  doctorGender: string;
-  doctorName: string;
-  qualification: string;
-  certification: string;
-  obs: string;
-  logo?: FileList;
-};
+import { z } from "zod";
+
+const PrescriptionFormSchema = z.object({
+  patientName: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  address: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  age: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  date: z.date(),
+  diagnosis: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  doctorGender: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  doctorName: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  qualification: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  certification: z.string().min(1, {
+    message: "Campo obrigatório",
+  }),
+  obs: z
+    .string()
+    .min(1, {
+      message: "Campo obrigatório",
+    })
+    .max(1500),
+  logo: z.custom<File>(),
+});
+
+type PrescriptionFormInputs = z.infer<typeof PrescriptionFormSchema>;
 
 const PrescriptionForm: React.FC = () => {
-  const form = useForm<PrescriptionFormInputs>();
+  const storageDoctorInfo = localStorage.getItem("doctorInfo") ? JSON.parse(localStorage.getItem("doctorInfo") as string) : null;
+
+  const form = useForm<PrescriptionFormInputs>({
+    resolver: zodResolver(PrescriptionFormSchema),
+    defaultValues: {
+      doctorGender: storageDoctorInfo?.doctorGender || "",
+      doctorName: storageDoctorInfo?.doctorName || "",
+      qualification: storageDoctorInfo?.qualification || "",
+      certification: storageDoctorInfo?.certification || "",
+      date:new Date(),
+    }
+  });
   const { handleSubmit, control } = form;
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
+  const storeDoctorInfo = (data: PrescriptionFormInputs) => {
+    localStorage.setItem("doctorInfo", JSON.stringify(data));
+  };
+
   const onSubmit = (data: PrescriptionFormInputs) => {
+    storeDoctorInfo(data);
     const doc = new jsPDF();
 
     const backgroundImage = `/prescription.png`;
@@ -107,10 +149,7 @@ const PrescriptionForm: React.FC = () => {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 p-4"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div>
           <div className="flex flex-col sm:flex-row  mt-1 gap-4">
             <FormField
@@ -245,7 +284,6 @@ const PrescriptionForm: React.FC = () => {
             control={control}
             name="date"
             rules={{ required: true }}
-            defaultValue={new Date()}
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Data de atendimento</FormLabel>
@@ -271,7 +309,7 @@ const PrescriptionForm: React.FC = () => {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value ? new Date(field.value) : undefined}
+                      selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
