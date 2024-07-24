@@ -88,7 +88,9 @@ const PrescriptionForm: React.FC = () => {
       doc.text(`${format(data.date, "PPP", { locale: ptBR })}`, 101, 85);
       const str = doc.splitTextToSize(`${data.obs}`, 180);
       doc.text(str, 15, 135);
-      const nameDoc = `${data.patientName} - ${format(data.date, "PPP", { locale: ptBR })}`;
+      const nameDoc = `${data.patientName} - ${format(data.date, "PPP", {
+        locale: ptBR,
+      })}`;
       doc.save(`${nameDoc}.pdf`);
     };
   };
@@ -172,7 +174,7 @@ const PrescriptionForm: React.FC = () => {
               );
             }}
           />
-        
+
           <FormField
             name="certification"
             control={control}
@@ -206,7 +208,7 @@ const PrescriptionForm: React.FC = () => {
               );
             }}
           />
-           <FormField
+          <FormField
             name="age"
             control={control}
             rules={{ required: true }}
@@ -237,7 +239,7 @@ const PrescriptionForm: React.FC = () => {
             }}
           />
         </div>
- 
+
         <div>
           <FormField
             control={control}
@@ -339,6 +341,7 @@ const PrescriptionForm: React.FC = () => {
                       accept="image/*"
                       ref={field.ref}
                       onChange={handleLogoChange}
+                      className="file:text-foreground"
                     />
                   </div>
                   <FormMessage />

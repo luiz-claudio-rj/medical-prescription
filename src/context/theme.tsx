@@ -21,8 +21,10 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
   const [theme, setTheme] = useState<Theme>("light");
 
   const updateTheme = (theme: Theme) => {
+
     localStorage.setItem("theme", theme);
     setTheme(theme);
+    document.documentElement.className = theme === "dark" ? "dark" : "light";
   };
 
   const toggleTheme = () => {
@@ -32,14 +34,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const localTheme = localStorage.getItem("theme") as Theme;
     if (localTheme) {
-      setTheme(localTheme);
+      updateTheme(localTheme);
       return;
     }
 
     const prefersDarkMode = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
-    setTheme(prefersDarkMode ? "dark" : "light");
+    updateTheme(prefersDarkMode ? "dark" : "light");
   }, []);
 
   return (
