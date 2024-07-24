@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {
   Form,
   FormControl,
@@ -31,8 +32,16 @@ import {
 import { Textarea } from "./components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "./lib/utils";
+import InputMask from "react-input-mask";
 
 import { z } from "zod";
+
+const stringToPhoneNumber = (str: string) => {
+  if (str.length === 10) {
+    return str.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  }
+  return str.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+};
 
 const PrescriptionFormSchema = z.object({
   patientName: z.string({ required_error: "Campo obrigatório" }).max(50, {
@@ -75,6 +84,29 @@ const PrescriptionFormSchema = z.object({
   }),
   obs: z.string({ required_error: "Campo obrigatório" }).max(1500),
   logo: z.custom<File>(),
+  doctorPhone: z.preprocess(
+    (a) => {
+      if (typeof a === "string") {
+        return a.replace(/[^0-9]/g, "");
+      }
+      return a;
+    },
+    z
+      .string({ required_error: "Campo obrigatório" })
+      .min(10, {
+        message: "Telefone inválido",
+      })
+      .max(11, {
+        message: "Telefone inválido",
+      })
+  ),
+
+  doctorAddress: z.string({ required_error: "Campo obrigatório" }).max(150, {
+    message: "Máximo de 150 caracteres",
+  }),
+  doctorEmail: z.string({ required_error: "Campo obrigatório" }).email({
+    message: "Email inválido",
+  }),
 });
 
 type PrescriptionFormInputs = z.infer<typeof PrescriptionFormSchema>;
@@ -92,6 +124,9 @@ const PrescriptionForm: React.FC = () => {
       qualification: storageDoctorInfo?.qualification || "",
       certification: storageDoctorInfo?.certification || "",
       date: new Date(),
+      doctorAddress: storageDoctorInfo?.doctorAddress || "",
+      doctorEmail: storageDoctorInfo?.doctorEmail || "",
+      doctorPhone: storageDoctorInfo?.doctorPhone || "",
     },
   });
   const { handleSubmit, control } = form;
@@ -140,6 +175,29 @@ const PrescriptionForm: React.FC = () => {
       doc.text(`${format(data.date, "PPP", { locale: ptBR })}`, 101, 85);
       const str = doc.splitTextToSize(`${data.obs}`, 180);
       doc.text(str, 15, 135);
+
+      console.log(doc.getFontList());
+      doc.setFontSize(10);
+      doc.setTextColor(84, 97, 106);
+      const address = doc.splitTextToSize(`${data.doctorAddress}`, 115);
+      let coordinates = {
+        x: 88,
+        y: 288,
+      };
+
+      if (data.doctorAddress.length > 60) {
+        coordinates = {
+          x: 88,
+          y: 286,
+        };
+      }
+
+      doc.text(address, coordinates.x, coordinates.y);
+
+      doc.text(stringToPhoneNumber(data.doctorPhone), 88, 275);
+
+      doc.text(`${data.doctorEmail}`, 155, 275);
+
       const nameDoc = `${data.patientName} - ${format(data.date, "PPP", {
         locale: ptBR,
       })}`;
@@ -159,7 +217,10 @@ const PrescriptionForm: React.FC = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 pb-4"
+      >
         <div>
           <div className="flex flex-col sm:flex-row  mt-1 gap-4">
             <FormField
@@ -202,6 +263,61 @@ const PrescriptionForm: React.FC = () => {
               }}
             />
           </div>
+        </div>
+        <div className="flex flex-col sm:flex-row  mt-1 gap-4">
+          <FormField
+            name="doctorPhone"
+            control={control}
+            render={({ field }) => {
+              const value = field.value;
+              const mask =
+                value.charAt(5) === "9" ? "(99) 99999-9999" : "(99) 9999-9999";
+
+              return (
+                <FormItem className="w-full">
+                  <FormLabel>Telefone</FormLabel>
+                  <InputMask
+                    mask={mask}
+                    value={field.value}
+                    onChange={field.onChange}
+                  >
+                    {/* @ts-ignore */}
+                    {() => <Input ref={field.ref} />}
+                  </InputMask>
+
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
+          <FormField
+            name="doctorEmail"
+            control={control}
+            render={({ field }) => {
+              return (
+                <FormItem className="w-full">
+                  <FormLabel>Email</FormLabel>
+                  <Input {...field} />
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
+        </div>
+        <div>
+          <FormField
+            name="doctorAddress"
+            control={control}
+            render={({ field }) => {
+              return (
+                <FormItem className="w-full">
+                  <FormLabel>Endereço</FormLabel>
+                  <Input {...field} />
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
         </div>
         <div className="flex flex-col sm:flex-row  mt-1 gap-4">
           <FormField
