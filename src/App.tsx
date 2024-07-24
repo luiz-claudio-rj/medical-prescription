@@ -9,7 +9,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="App relative">
-      <header className="sticky top-0  bg-slate-200 dark:bg-slate-800 z-10">
+      <header className="sticky top-0  bg-slate-200 dark:bg-slate-800 z-20">
         <div className="container flex gap-4 pt-4 justify-between  sm:px-24 items-center">
           <h1 className="text-xl sm:text-2xl font-bold mb-4 ">
             Gerador de prescrição médica

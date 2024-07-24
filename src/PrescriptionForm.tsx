@@ -35,6 +35,7 @@ import { cn } from "./lib/utils";
 import InputMask from "react-input-mask";
 
 import { z } from "zod";
+import Separator from "./components/ui/separator";
 
 const stringToPhoneNumber = (str: string) => {
   if (str.length === 10) {
@@ -106,6 +107,8 @@ const PrescriptionFormSchema = z.object({
   }),
   doctorEmail: z.string({ required_error: "Campo obrigatório" }).email({
     message: "Email inválido",
+  }).max(100, {
+    message: "Máximo de 100 caracteres",
   }),
 });
 
@@ -195,8 +198,10 @@ const PrescriptionForm: React.FC = () => {
       doc.text(address, coordinates.x, coordinates.y);
 
       doc.text(stringToPhoneNumber(data.doctorPhone), 88, 275);
-
-      doc.text(`${data.doctorEmail}`, 155, 275);
+      const email = doc.splitTextToSize(data.doctorEmail, 50);
+      
+      doc.text(email, 153, data.doctorEmail.length > 
+        30 ? 273 : 275);
 
       const nameDoc = `${data.patientName} - ${format(data.date, "PPP", {
         locale: ptBR,
@@ -204,6 +209,7 @@ const PrescriptionForm: React.FC = () => {
       doc.save(`${nameDoc}.pdf`);
     };
   };
+
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -222,6 +228,10 @@ const PrescriptionForm: React.FC = () => {
         className="flex flex-col gap-4 pb-4"
       >
         <div>
+          <Separator
+          label="Dados do médico"
+          className="mt-4"
+        />
           <div className="flex flex-col sm:flex-row  mt-1 gap-4">
             <FormField
               name="doctorGender"
@@ -354,6 +364,10 @@ const PrescriptionForm: React.FC = () => {
             }}
           />
         </div>
+        <Separator
+          label="Dados do paciente"
+          className="mt-4"
+        />
         <div className="flex flex-col sm:flex-row  mt-1 gap-4">
           <FormField
             name="patientName"
@@ -361,7 +375,7 @@ const PrescriptionForm: React.FC = () => {
             render={({ field }) => {
               return (
                 <FormItem className="w-full">
-                  <FormLabel> Nome do/da paciente</FormLabel>
+                  <FormLabel> Nome </FormLabel>
                   <Input {...field} />
                   <FormMessage />
                 </FormItem>
@@ -397,7 +411,10 @@ const PrescriptionForm: React.FC = () => {
             }}
           />
         </div>
-
+        <Separator
+          label="Dados da consulta"
+          className="mt-4"
+        />
         <div>
           <FormField
             control={control}
@@ -480,6 +497,10 @@ const PrescriptionForm: React.FC = () => {
             }}
           />
         </div>
+        <Separator
+          label="Extras"
+          className="mt-4"
+        />
         <div>
           <FormField
             name="logo"
